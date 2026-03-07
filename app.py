@@ -13,6 +13,21 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import os
 
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "Data"
+MODELS_DIR = BASE_DIR / "Models"
+
+def resolve_existing_path(*relative_options: str) -> str:
+    """Return the first existing path from provided repo-relative options."""
+    for rel in relative_options:
+        candidate = BASE_DIR / rel
+        if candidate.exists():
+            return str(candidate)
+    # Fall back to the first option so downstream errors are explicit
+    return str(BASE_DIR / relative_options[0])
+
 tfidf = TfidfVectorizer(stop_words='english')
 
 # -------------------------------------------------------
@@ -143,9 +158,15 @@ hr {
 # -------------------------------------------------------
 @st.cache_data
 def load_data():
-    customers = pd.read_csv("cleaned_customer.csv")
-    products = pd.read_csv("cleaned_product.csv")
-    transactions = pd.read_csv("cleaned_transaction.csv")
+    customers = pd.read_csv(
+        resolve_existing_path("Data/cleaned_customer.csv", "cleaned_customer.csv")
+    )
+    products = pd.read_csv(
+        resolve_existing_path("Data/cleaned_product.csv", "cleaned_product.csv")
+    )
+    transactions = pd.read_csv(
+        resolve_existing_path("Data/cleaned_transaction.csv", "cleaned_transaction.csv")
+    )
     return customers, products, transactions
 
 customers, products, transactions = load_data()
@@ -175,15 +196,15 @@ tfidf, product_vectors, product_list = build_tfidf(products)
 # LOAD MODELS
 # -------------------------------------------------------
 # Segmentation
-kmeans = joblib.load("kmeans_model.pkl")
-seg_scaler = joblib.load("seg_scaler.pkl")
-seg_feature_cols = joblib.load("seg_feature_columns.pkl")
+kmeans = joblib.load(resolve_existing_path("Models/kmeans_model.pkl", "kmeans_model.pkl"))
+seg_scaler = joblib.load(resolve_existing_path("Models/seg_scaler.pkl", "seg_scaler.pkl"))
+seg_feature_cols = joblib.load(resolve_existing_path("Models/seg_feature_columns.pkl", "seg_feature_columns.pkl"))
 
 # Churn
-churn_model = joblib.load("churn_model.pkl")
-encoders = joblib.load("churn_encoders.pkl")
-feature_cols = joblib.load("feature_columns.pkl")
-lstm_model = load_model("sales_lstm_model.h5",compile=False,safe_mode=False)
+churn_model = joblib.load(resolve_existing_path("Models/churn_model.pkl", "churn_model.pkl"))
+encoders = joblib.load(resolve_existing_path("Models/churn_encoders.pkl", "churn_encoders.pkl"))
+feature_cols = joblib.load(resolve_existing_path("Models/feature_columns.pkl", "feature_columns.pkl"))
+lstm_model = load_model(resolve_existing_path("Models/sales_lstm_model.h5", "sales_lstm_model.h5"),compile=False,safe_mode=False)
 
 # -------------------------------------------------------
 # SIDEBAR
@@ -665,7 +686,7 @@ elif menu == "Sales Forecasting":
 
     # LOAD SCALER
     try:
-        scaler = joblib.load("scaler.pkl")
+        scaler = joblib.load(resolve_existing_path("Models/scaler.pkl", "scaler.pkl"))
     except Exception as e:
         scaler = None
         st.warning(f"⚠️ Scaler not found: {e}")
@@ -673,7 +694,7 @@ elif menu == "Sales Forecasting":
     # LOAD LSTM MODEL
     try:
 
-        model_path = os.path.join(os.getcwd(), "sales_lstm_model.h5")
+        model_path = resolve_existing_path("Models/sales_lstm_model.h5", "sales_lstm_model.h5")
 
         lstm_model = load_model(model_path, compile=False)
 
