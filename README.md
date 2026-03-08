@@ -110,4 +110,4 @@ Product Recommendation | TF-IDF + Cosine Similarity |
 ### 1 Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/ecommerce-ai-platform.git
+git clone https://github.com/VineethKcoder/AI-Powered-E-Commerce-Intelligence-Platform.git
